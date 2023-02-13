@@ -118,7 +118,7 @@ float * gen_random(int size)
   for ( i = 0; i < size; i++ ) {
     long long upper = random();
     long long lower = random();
-    result[i] = (upper << 32) | lower;
+    result[i] = (upper << 2) | lower;
   }
 
   return result;
