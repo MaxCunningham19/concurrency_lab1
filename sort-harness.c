@@ -128,6 +128,7 @@ int main(int argc, char ** argv)
 {
   float * array;
   float * copy;
+  float * copy2;
   long long sort_time;
   int array_size;
   struct timeval start_time;
@@ -165,17 +166,37 @@ int main(int argc, char ** argv)
   gettimeofday(&stop_time, NULL);
   sort_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
     (stop_time.tv_usec - start_time.tv_usec);
-  printf("Sorting time: %lld microseconds, %lld cycles\n", sort_time, stop_cycle - start_cycle);
+  printf("Sample Sorting time: %lld microseconds, %lld cycles\n", sort_time, stop_cycle - start_cycle);
 
   DEBUGGING(write_out(array, array_size));
 
-  /* sort the copy. use built-in sorting function to check your function */
-  david_sort(copy, array_size);
+  copy2 = copy_array(copy,array_size);
 
+  /* record starting time from the processor's time stamp counter */
+  gettimeofday(&start_time, NULL);
+  start_cycle = _rdtsc();
+
+  /* sort the array somehow */
+  /* you should write the code for the student sort */
+  interesting_sort(copy2, array_size);
+
+  /* record finishing time */
+  stop_cycle = _rdtsc();
+  gettimeofday(&stop_time, NULL);
+  sort_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+    (stop_time.tv_usec - start_time.tv_usec);
+  printf("Interesting Sorting time: %lld microseconds, %lld cycles\n", sort_time, stop_cycle - start_cycle);
+
+  DEBUGGING(write_out(array, array_size));
+
+  david_sort(copy, array_size);
   /* now check that the two are identical */
   for ( i = 0; i < array_size; i++ ) {
     if ( array[i] != copy[i] ) {
-      fprintf(stderr, "Error in sorting at position %d\n", i);
+      fprintf(stderr, "Sample Sort Error in sorting at position %d\n", i);
+    }
+    if ( copy2[i] != copy[i] ) {
+      fprintf(stderr, "Interesting Sort Error in sorting at position %d\n", i);
     }
   }
 

@@ -1,6 +1,10 @@
 #include "sort-harness.h"
 #include <stdio.h>
-#include <xmmintrin.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/time.h>
+#include <x86intrin.h>
 
 
 void print_arr(float a[],int size){
@@ -95,29 +99,63 @@ void sample_sort(float a[], int size){
 //   printf("wediditbois");
 // }
 
-void student_sort(float a[], int size) {
-  //david_sort(a, size);
-  print_arr(a,size);
-  sample_sort(a,size);
-  print_arr(a,size);
+//----interesting sort----//
+
+__m128 pick_pivots_isort(float a[],int size){
+  int size_delta = (size/5);
+  float b[5] = {a[0],a[size_delta],a[size_delta*2],a[size_delta*3],a[size_delta*4]};
+  david_sort(b,5);
+  float c[4] = {b[1],b[3],b[1],b[3]};
+  __m128 pivots = _mm_loadu_ps(&c[0]);
+  return pivots;
 }
 
-//----interesting sort----//
-// assuming s4 is in ascending order i.e [0|1|2|3]
-int insert(float a,__m128 s4){
-  __m128 a4 = _mm_load1_ps(&(a));
-  int mask = _mm_movemask_ps(_mm_cmple_ps(a4,s4));
+void switch_it_isort(int mask,int bucketSel[]){
   switch (mask)
   {
-  case 0: // 0000 greater than all values
-    // pop left most push all down 1 insiert in rightmost
-    break;
+  case 0:
+    bucketSel[0] = 2;
+    bucketSel[1] = 2;
+    return;
+  case 8:
+    bucketSel[0] = 2;
+    bucketSel[1] = 1;
+    return;
+  case 12:
+    bucketSel[0] = 2;
+    bucketSel[1] = 0;
+    return;
+  case 2:
+    bucketSel[0] = 1;
+    bucketSel[1] = 2;
+    return;
+  case 10:
+    bucketSel[0] = 1;
+    bucketSel[1] = 1;
+    return;
+  case 14:
+    bucketSel[0] = 1;
+    bucketSel[1] = 0;
+    return;
+  case 3:
+    bucketSel[0] = 0;
+    bucketSel[1] = 2;
+    return;
+  case 11:
+    bucketSel[0] = 0;
+    bucketSel[1] = 1;
+    return;
+  case 15:
+    bucketSel[0] = 0;
+    bucketSel[1] = 0;
+    return;
   default:
-    break;
+    printf("Oh No!!");
+    return;
   }
 }
 
-void interestng_sort(float a[], int size){
+void interesting_sort(float a[], int size){
    if (size<=1){
     return;
   }
@@ -133,26 +171,27 @@ void interestng_sort(float a[], int size){
     bucket[i] = (float*)malloc(size*sizeof(float));
   }
 
+  int tmpB[2] = {0,0};
   int bucketIndex[3] = {0,0,0}; 
   for (int i=0;i<size;i=i+2){
     float b[4] = {a[i],a[i],a[i+1],a[i+1]};
     __m128 a2 = _mm_loadu_ps(&b[0]);
     
-    int tmpB = switch_it_isort(_mm_movemask_ps(_mm_cmple_ps(a2,pivots)));
-    if (tmpB==-1){
-      exit(1);
-    }
-    bucket[tmpB][bucketIndex[tmpB]] = a[i];
-    bucketIndex[tmpB] = bucketIndex[tmpB] + 1;
+    switch_it_isort(_mm_movemask_ps(_mm_cmple_ps(a2,pivots)), tmpB);
+
+    bucket[tmpB[0]][bucketIndex[tmpB[0]]] = a[i];
+    bucketIndex[tmpB[0]] = bucketIndex[tmpB[0]] + 1;
+    bucket[tmpB[1]][bucketIndex[tmpB[1]]] = a[i+1];
+    bucketIndex[tmpB[1]] = bucketIndex[tmpB[1]] + 1;
   }
 
 
-  for (int i=0;i<5;i++){
+  for (int i=0;i<3;i++){
     sample_sort(bucket[i],bucketIndex[i]);
   }
 
   int curI = 0;
-  for (int b = 0;b<5;b++){
+  for (int b = 0;b<3;b++){
     for (int tmp=0;tmp<bucketIndex[b];tmp++){
       a[curI] = bucket[b][tmp];
       curI = curI + 1;
@@ -160,8 +199,12 @@ void interestng_sort(float a[], int size){
   }
 
 
-  for (int i=0;i<5;i++){
+  for (int i=0;i<3;i++){
     free(bucket[i]);
   }
   free(bucket);
+}
+
+void student_sort(float array[], int array_size) {
+  sample_sort(array,array_size);
 }

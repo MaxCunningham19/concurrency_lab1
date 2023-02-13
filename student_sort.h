@@ -2,5 +2,6 @@
 #define STUDENT_SORT_H
 
 void student_sort(float a[], int size);
+void interesting_sort(float a[], int size);
 
 #endif
