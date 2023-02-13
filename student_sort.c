@@ -7,13 +7,13 @@
 #include <x86intrin.h>
 
 
-void print_arr(float a[],int size){
-  printf("[");
-  for (int i=0;i<size-1;i++){
-    printf("%f, ",a[i]);
-  }
-   printf("%f]\n",a[size-1]);
-}
+// void print_arr(float a[],int size){
+//   printf("[");
+//   for (int i=0;i<size-1;i++){
+//     printf("%f, ",a[i]);
+//   }
+//    printf("%f]\n",a[size-1]);
+// }
 
 __m128 pick_pivots(float a[],int size){
   int size_delta = (size/5);
@@ -207,4 +207,5 @@ void interesting_sort(float a[], int size){
 
 void student_sort(float array[], int array_size) {
   sample_sort(array,array_size);
+  //david_sort(array,array_size);
 }
